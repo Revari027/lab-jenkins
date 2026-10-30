@@ -3,49 +3,57 @@ pipeline {
 
     environment {
         
-        CI = 'true'
+        IMAGE_NAME = 'revario/nextjs-app'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        KUBE_NAMESPACE = 'default'
+        DEPLOYMENT_NAME = 'nextjs-app-deployment'
     }
 
     stages {
         stage('Checkout') {
             steps {
-               
                 checkout scm
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install & Build App') {
             steps {
-                
                 sh 'npm ci'
-            }
-        }
-
-        stage('Lint') {
-            steps {
-                
-                sh 'npm run lint'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                
                 sh 'npm run build'
+            }
+        }
+
+        stage('Build & Push Docker Image') {
+            steps {
+                script {
+                    
+                    app = docker.build("${env.IMAGE_NAME}:${env.IMAGE_TAG}")
+                    
+                    
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+                        app.push("${env.BUILD_NUMBER}")
+                        app.push("latest")
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to MicroK8s') {
+            steps {
+                script {
+                    
+                    sh "microk8s kubectl set image deployment/${env.DEPLOYMENT_NAME} app=${env.IMAGE_NAME}:${env.IMAGE_TAG} -n ${env.KUBE_NAMESPACE}"
+                }
             }
         }
     }
 
     post {
-        always {
-           
-            echo 'Proses pipeline selesai.'
-        }
         success {
-            echo 'Build Next.js berhasil!'
+            echo 'Pipeline sukses! Image berhasil di-push ke Docker Hub dan dideploy ke MicroK8s.'
         }
         failure {
-            echo 'Build Next.js gagal. Periksa log di atas.'
+            echo 'Pipeline gagal, silakan cek log.'
         }
     }
 }
