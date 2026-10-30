@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Tentang from "./tentang/page";
 
 export default function Home() {
   return (
@@ -62,6 +63,7 @@ export default function Home() {
           >
             Documentation
           </a>
+          <a href="./tentang">halaman tentang</a>
         </div>
       </main>
     </div>
