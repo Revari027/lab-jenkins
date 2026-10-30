@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: revario/nextjs-app:latest  # <-- Sesuaikan ke Docker Hub anda
+        image: revario/nextjs-app:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000

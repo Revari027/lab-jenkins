@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        
         IMAGE_NAME = 'revario/nextjs-app'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         KUBE_NAMESPACE = 'default'
@@ -26,9 +25,7 @@ pipeline {
         stage('Build & Push Docker Image') {
             steps {
                 script {
-                    
                     app = docker.build("${env.IMAGE_NAME}:${env.IMAGE_TAG}")
-                    
                     
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
                         app.push("${env.BUILD_NUMBER}")
@@ -41,7 +38,6 @@ pipeline {
         stage('Deploy to MicroK8s') {
             steps {
                 script {
-                    
                     sh "microk8s kubectl set image deployment/${env.DEPLOYMENT_NAME} app=${env.IMAGE_NAME}:${env.IMAGE_TAG} -n ${env.KUBE_NAMESPACE}"
                 }
             }
